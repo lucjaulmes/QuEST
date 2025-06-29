@@ -905,8 +905,9 @@ util_VectorIndexRange util_getLocalIndRangeOfVectorElemsWithinNode(int rank, qin
 
 std::pair<qindex, qindex>
 util_distribute(const qindex work, const qindex block, const int id, const int n) {
-    // ASSUME(work % block == 0);
     const qindex blocks = work / block;
+    // really should not happen except when work < block as work is power of 2 and block should be too.
+    const qindex last = work % block;
 
     qindex spread = blocks / n;
     qindex extra = blocks % n;
@@ -916,7 +917,8 @@ util_distribute(const qindex work, const qindex block, const int id, const int n
     qindex here_extra = (prev_shift + extra) >= n;
 
     qindex pos = id * spread + prev_extra;
-    return std::make_pair(pos * block, (pos + spread + here_extra) * block);
+    qindex end = pos + spread + here_extra;
+    return std::make_pair(pos * block, end * block + (id == n - 1 ? last : 0));
 }
 
 /*
