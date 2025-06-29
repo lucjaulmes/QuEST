@@ -9,6 +9,7 @@
 #include "quest/include/types.h"
 #include "quest/include/paulis.h"
 
+#include "quest/src/core/memory.hpp"
 #include "quest/src/core/errors.hpp"
 
 #include <vector>
@@ -112,8 +113,8 @@ int cpu_getCurrentNumThreads() {
  * MEMORY ALLOCATION
  */
 
+unsigned long cpu_getPageSize() {
 #if NUMA_AWARE
-unsigned long getPageSize() {
     static unsigned long page_size = 0;
     if (!page_size) {
         page_size = sysconf(_SC_PAGESIZE);
@@ -122,9 +123,13 @@ unsigned long getPageSize() {
         }
     }
     return page_size;
+#else
+    return FALLBACK_PAGE_SIZE;
+#endif
 }
 
-unsigned long getNumaNodes() {
+#if NUMA_AWARE
+unsigned long cpu_getNumaNodes() {
     static int n_nodes = 0;
     if (!n_nodes) {
         n_nodes = numa_num_configured_nodes();
@@ -145,8 +150,8 @@ qcomp* cpu_allocNumaArray(qindex length) {
 #if !NUMA_AWARE
     return cpu_allocArray(length);
 #else
-    unsigned long page_size = getPageSize();
-    int n_nodes = getNumaNodes();
+    unsigned long page_size = cpu_getPageSize();
+    int n_nodes = cpu_getNumaNodes();
 
     qindex size = length * sizeof(qcomp);
     int pages = (size + page_size - 1) / page_size;
@@ -193,7 +198,7 @@ void cpu_deallocNumaArray(qcomp* arr, qindex length) {
 #if !NUMA_AWARE
     return cpu_deallocArray(arr);
 #else
-    unsigned long page_size = getPageSize();
+    unsigned long page_size = cpu_getPageSize();
     qindex size = length * sizeof(qcomp);
     int pages = (size + page_size - 1) / page_size;
 

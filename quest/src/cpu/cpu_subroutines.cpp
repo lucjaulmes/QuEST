@@ -2359,9 +2359,7 @@ void cpu_statevec_initUniformState_sub(Qureg qureg, qcomp amp) {
     // than a custom multithreaded loop
     #pragma omp parallel if(qureg.isMultithreaded)
     {
-
-        // Distribute number of tasks and convert to indexes. 4kB page standard?
-        const auto [start, end] = util_distribute(qureg.numAmpsPerNode, 4096 / sizeof(qcomp),
+        const auto [start, end] = util_distribute(qureg.numAmpsPerNode, cpu_getPageSize() / sizeof(qcomp),
                 cpu_getOpenmpThreadInd(), cpu_getCurrentNumThreads());
         std::fill(qureg.cpuAmps + start, qureg.cpuAmps + end, amp);
     }

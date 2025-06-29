@@ -22,6 +22,12 @@
 
 
 /*
+ * Not necessarily the actual page size, but a sensible default for page-sized things.
+ */
+#define FALLBACK_PAGE_SIZE 4096
+
+
+/*
  * HARDWARE QUERYING
  */
 
